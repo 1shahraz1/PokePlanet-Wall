@@ -189,9 +189,9 @@ function ConfettiLayer({ trigger }) {
 function QuantityBadge({ qty, color }) {
   const soldOut = qty === 0;
   return (
-    <div style={{ position: "absolute", top: 8, right: 8, minWidth: 48, height: 48, padding: "0 12px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 9999, background: soldOut ? "rgba(229,231,235,0.96)" : "rgba(0,0,0,0.82)", color: soldOut ? "#6b7280" : color, fontWeight: 900, fontSize: 28, border: "1px solid rgba(255,255,255,0.16)", boxShadow: soldOut ? "0 2px 8px rgba(0,0,0,0.12)" : `0 0 12px ${color}, 0 0 28px ${color}` }}>
+    <div style={{ position: "absolute", top: 8, right: 8, minWidth: 36, height: 36, padding: "0 8px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 9999, background: soldOut ? "rgba(229,231,235,0.96)" : "rgba(0,0,0,0.82)", color: soldOut ? "#6b7280" : color, fontWeight: 900, fontSize: 18, border: "1px solid rgba(255,255,255,0.16)", boxShadow: soldOut ? "0 2px 8px rgba(0,0,0,0.12)" : `0 0 12px ${color}, 0 0 28px ${color}` }}>
       <AnimatePresence mode="wait">
-        <motion.span key={qty} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: [1.4, 1], opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }} transition={{ duration: 0.25 }} style={{ textShadow: soldOut ? "none" : `0 0 12px ${color}, 0 0 30px ${color}` }}>
+        <motion.span key={qty} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: [1.4, 1], opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }} transition={{ duration: 0.25 }} style={{ textShadow: soldOut ? "none" : `0 0 6px ${color}, 0 0 14px ${color}` }}>
           x{qty}
         </motion.span>
       </AnimatePresence>
@@ -204,18 +204,18 @@ function HitCard({ hit, onHit, hitFx, clearHitFx, vanishFx, compact = false, ult
   const soldOut = hit.qty === 0;
   return (
     <motion.div key={hit.id} layout initial={{ opacity: 0, scale: 0.96, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.6, y: -10, filter: "blur(8px)" }} transition={{ type: "spring", stiffness: 260, damping: 24 }}>
-      <div onClick={() => !disableClicks && onHit(hit.id)} style={{ position: "relative", overflow: "hidden", borderRadius: ultraCompact ? 10 : compact ? 12 : 16, border: style.border, backdropFilter: "blur(6px)", background: soldOut ? "rgba(240,240,240,0.9)" : "rgba(255,255,255,0.95)", boxShadow: `${style.glow}, 0 0 40px rgba(168,85,247,0.18)${hitFx ? ", 0 0 60px rgba(255,255,255,0.35)" : ""}`, cursor: soldOut || disableClicks ? "default" : "pointer", userSelect: "none", opacity: soldOut ? 0.88 : 1, pointerEvents: disableClicks ? "none" : "auto" }}>
+      <div onClick={() => !disableClicks && onHit(hit.id)} style={{ position: "relative", overflow: "hidden", borderRadius: ultraCompact ? 10 : compact ? 12 : 16, border: style.border, backdropFilter: "blur(6px)", background: soldOut ? "rgba(55,65,81,0.75)" : "rgba(5,10,25,0.75)", boxShadow: `${style.glow}, 0 0 40px rgba(168,85,247,0.18)${hitFx ? ", 0 0 60px rgba(255,255,255,0.35)" : ""}`, cursor: soldOut || disableClicks ? "default" : "pointer", userSelect: "none", opacity: soldOut ? 0.88 : 1, pointerEvents: disableClicks ? "none" : "auto" }}>
         {hitFx && <BurstEffect onDone={() => clearHitFx(hit.id)} />}
         {vanishFx && <VanishEffect />}
         <motion.div animate={hitFx ? { scale: [1, 1.15, 0.92, 1.08, 1], rotate: [0, -2, 2, -1, 0] } : { scale: 1, rotate: 0 }} transition={{ duration: 0.42, ease: "easeOut" }}>
           <div style={{ position: "relative", height: ultraCompact ? 96 : compact ? 120 : 180 }}>
-            <img src={hit.image} alt={hit.title} loading="eager" onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80"; }} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", background: soldOut ? "rgba(220,220,220,0.9)" : "rgba(255,255,255,0.9)", filter: soldOut ? "grayscale(1) brightness(0.75)" : "none" }} />
+            <img src={hit.image} alt={hit.title} loading="eager" onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80"; }} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", background: soldOut ? "rgba(31,41,55,0.85)" : "rgba(0,0,0,0.4)", filter: soldOut ? "grayscale(1) brightness(0.75)" : "none" }} />
             <div style={{ position: "absolute", inset: 0, background: soldOut ? "linear-gradient(to top, rgba(17,24,39,0.25), rgba(17,24,39,0.05), rgba(17,24,39,0))" : "linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0.18), rgba(0,0,0,0.05))" }} />
             {!compact && !ultraCompact && <div style={{ position: "absolute", top: 8, left: 8 }}><span style={pillStyle(style.badge)}>{hit.tier}</span></div>}
             <QuantityBadge qty={hit.qty} color={style.qtyColor} />
             {soldOut && <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%) rotate(-12deg)", background: "linear-gradient(135deg, #f59e0b, #ef4444)", color: "white", fontWeight: 900, fontSize: ultraCompact ? 13 : compact ? 16 : 22, letterSpacing: "0.06em", padding: ultraCompact ? "6px 10px" : compact ? "8px 12px" : "10px 18px", borderRadius: 12, boxShadow: "0 8px 20px rgba(0,0,0,0.35)", zIndex: 12, textTransform: "uppercase", whiteSpace: "nowrap" }}>BANGED OUT!</div>}
           </div>
-          <div style={{ padding: ultraCompact ? 6 : compact ? 8 : 12, background: soldOut ? "rgba(230,230,230,0.95)" : "rgba(255,255,255,0.95)" }}>
+          <div style={{ padding: ultraCompact ? 6 : compact ? 8 : 12, background: soldOut ? "rgba(20,20,20,0.78)" : "rgba(0,0,0,0.6)" }}>
             <div style={{ minHeight: ultraCompact ? 28 : compact ? 34 : 48, fontSize: ultraCompact ? 11 : compact ? 15 : 20, fontWeight: 800, textTransform: "uppercase", letterSpacing: ultraCompact ? "-0.01em" : compact ? "0em" : "0.01em", lineHeight: ultraCompact ? 1 : compact ? 1.05 : 1.15, color: soldOut ? "rgba(255,255,255,0.72)" : "#fff", display: "flex", alignItems: "flex-start" }}>{hit.title}</div>
           </div>
         </motion.div>

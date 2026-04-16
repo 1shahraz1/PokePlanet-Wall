@@ -534,6 +534,7 @@ export default function PokePlanetLiveWall() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [columns, setColumns] = useState(3);
+  const [effectTick, setEffectTick] = useState(0);
   const [syncStatus, setSyncStatus] = useState("Connecting...");
   const channelRef = useRef(null);
   const initialLoadRef = useRef(false);
@@ -556,6 +557,7 @@ export default function PokePlanetLiveWall() {
         hits: nextHits,
         baseHits: nextBaseHits || baseHits,
         columns,
+        effectTick,
       },
       updated_at: new Date().toISOString(),
     };
@@ -602,6 +604,7 @@ export default function PokePlanetLiveWall() {
           setHits(nextHits);
           setBaseHits(nextBaseHits);
           if (typeof state.columns === "number") setColumns(state.columns);
+          if (typeof state.effectTick === "number") setEffectTick(state.effectTick);
           setSyncStatus("Live sync connected");
           hydrated = true;
         }
@@ -645,6 +648,10 @@ export default function PokePlanetLiveWall() {
               setHits(nextHits);
               setBaseHits(nextBaseHits);
               if (typeof nextState.columns === "number") setColumns(nextState.columns);
+              if (typeof nextState.effectTick === "number") {
+                setEffectTick(nextState.effectTick);
+                setConfettiTrigger(nextState.effectTick);
+              }
               saveFallbackState(nextHits, nextBaseHits);
               setSyncStatus("Live sync connected");
             } catch (validationErr) {
@@ -714,7 +721,9 @@ export default function PokePlanetLiveWall() {
     const clicked = hits.find((hit) => hit.id === id);
     if (!clicked || clicked.qty === 0) return;
 
-    setConfettiTrigger(Date.now());
+    const nextEffectTick = Date.now();
+    setEffectTick(nextEffectTick);
+    setConfettiTrigger(nextEffectTick);
     setHitFx((prev) => ({ ...prev, [id]: Date.now() }));
 
     if (clicked.qty === 1) {
@@ -730,7 +739,23 @@ export default function PokePlanetLiveWall() {
 
     const nextHits = applyHitToHits(hits, id);
     setHits(nextHits);
-    await syncState(nextHits);
+    try {
+      saveFallbackState(nextHits);
+      await supabase.from("wall_sessions").upsert({
+        id: SESSION_ID,
+        state: {
+          hits: nextHits,
+          baseHits,
+          columns,
+          effectTick: nextEffectTick,
+        },
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "id" });
+      setSyncStatus("Live sync connected");
+    } catch (err) {
+      console.error(err);
+      setSyncStatus("Using local fallback sync");
+    }
   };
 
   const resetWall = async () => {

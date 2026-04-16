@@ -189,9 +189,9 @@ function ConfettiLayer({ trigger }) {
 function QuantityBadge({ qty, color }) {
   const soldOut = qty === 0;
   return (
-    <div style={{ position: "absolute", top: 8, right: 8, minWidth: 36, height: 36, padding: "0 8px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 9999, background: soldOut ? "rgba(229,231,235,0.96)" : "rgba(0,0,0,0.82)", color: soldOut ? "#6b7280" : color, fontWeight: 900, fontSize: 18, border: "1px solid rgba(255,255,255,0.16)", boxShadow: soldOut ? "0 2px 8px rgba(0,0,0,0.12)" : `0 0 12px ${color}, 0 0 28px ${color}` }}>
+    <div style={{ position: "absolute", top: 8, right: 8, minWidth: 28, height: 28, padding: "0 6px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 9999, background: soldOut ? "rgba(229,231,235,0.96)" : "rgba(0,0,0,0.82)", color: soldOut ? "#6b7280" : color, fontWeight: 900, fontSize: 14, border: "1px solid rgba(255,255,255,0.16)", boxShadow: soldOut ? "0 2px 8px rgba(0,0,0,0.12)" : `0 0 12px ${color}, 0 0 28px ${color}` }}>
       <AnimatePresence mode="wait">
-        <motion.span key={qty} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: [1.4, 1], opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }} transition={{ duration: 0.25 }} style={{ textShadow: soldOut ? "none" : `0 0 6px ${color}, 0 0 14px ${color}` }}>
+        <motion.span key={qty} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: [1.4, 1], opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }} transition={{ duration: 0.25 }} style={{ textShadow: soldOut ? "none" : `0 0 4px ${color}, 0 0 10px ${color}` }}>
           x{qty}
         </motion.span>
       </AnimatePresence>

@@ -397,7 +397,7 @@ function QuantityBadge({ qty, color }) {
   );
 }
 
-function HitCard({ hit, onHit, hitFx, clearHitFx, vanishFx, compact = false }) {
+function HitCard({ hit, onHit, hitFx, clearHitFx, vanishFx, compact = false, ultraCompact = false }) {
   const style = tierStyles[hit.tier] || tierStyles.Standard;
   const soldOut = hit.qty === 0;
 
@@ -415,7 +415,7 @@ function HitCard({ hit, onHit, hitFx, clearHitFx, vanishFx, compact = false }) {
         style={{
           position: "relative",
           overflow: "hidden",
-          borderRadius: compact ? 12 : 16,
+          borderRadius: ultraCompact ? 10 : compact ? 12 : 16,
           border: style.border,
           backdropFilter: "blur(6px)",
           background: soldOut ? "rgba(55,65,81,0.75)" : "rgba(5,10,25,0.75)",
@@ -432,7 +432,7 @@ function HitCard({ hit, onHit, hitFx, clearHitFx, vanishFx, compact = false }) {
           animate={hitFx ? { scale: [1, 1.15, 0.92, 1.08, 1], rotate: [0, -2, 2, -1, 0] } : { scale: 1, rotate: 0 }}
           transition={{ duration: 0.42, ease: "easeOut" }}
         >
-          <div style={{ position: "relative", height: compact ? 120 : 180 }}>
+          <div style={{ position: "relative", height: ultraCompact ? 96 : compact ? 120 : 180 }}>
             <img
               src={hit.image}
               alt={hit.title}
@@ -478,9 +478,9 @@ function HitCard({ hit, onHit, hitFx, clearHitFx, vanishFx, compact = false }) {
                   background: "linear-gradient(135deg, #f59e0b, #ef4444)",
                   color: "white",
                   fontWeight: 900,
-                  fontSize: compact ? 16 : 22,
+                  fontSize: ultraCompact ? 13 : compact ? 16 : 22,
                   letterSpacing: "0.06em",
-                  padding: compact ? "8px 12px" : "10px 18px",
+                  padding: ultraCompact ? "6px 10px" : compact ? "8px 12px" : "10px 18px",
                   borderRadius: 12,
                   boxShadow: "0 8px 20px rgba(0,0,0,0.35)",
                   zIndex: 12,
@@ -493,15 +493,15 @@ function HitCard({ hit, onHit, hitFx, clearHitFx, vanishFx, compact = false }) {
             )}
           </div>
 
-          <div style={{ padding: compact ? 8 : 12, background: soldOut ? "rgba(20,20,20,0.78)" : "rgba(0,0,0,0.7)" }}>
+          <div style={{ padding: ultraCompact ? 6 : compact ? 8 : 12, background: soldOut ? "rgba(20,20,20,0.78)" : "rgba(0,0,0,0.7)" }}>
             <div
               style={{
-                minHeight: compact ? 34 : 48,
-                fontSize: compact ? 15 : 20,
+                minHeight: ultraCompact ? 28 : compact ? 34 : 48,
+                fontSize: ultraCompact ? 11 : compact ? 15 : 20,
                 fontWeight: 800,
                 textTransform: "uppercase",
-                letterSpacing: compact ? "0em" : "0.01em",
-                lineHeight: compact ? 1.05 : 1.15,
+                letterSpacing: ultraCompact ? "-0.01em" : compact ? "0em" : "0.01em",
+                lineHeight: ultraCompact ? 1 : compact ? 1.05 : 1.15,
                 color: soldOut ? "rgba(255,255,255,0.72)" : "#fff",
                 display: "flex",
                 alignItems: "flex-start",
@@ -775,13 +775,13 @@ export default function PokePlanetLiveWall() {
     }
   };
 
-  const frameHeight = isDisplayMode ? "44vh" : isStreamMode ? "48vh" : "auto";
+  const frameHeight = isDisplayMode ? "40vh" : isStreamMode ? "44vh" : "auto";
   const gridColumns = isDisplayMode
-    ? `repeat(${columns}, 1fr)`
+    ? `repeat(${Math.max(3, columns)}, 1fr)`
     : isMobilePreview
       ? "1fr"
       : isStreamMode
-        ? `repeat(${columns}, 1fr)`
+        ? `repeat(${Math.max(3, columns)}, 1fr)`
         : "repeat(auto-fit, minmax(240px, 1fr))";
 
   return (
@@ -789,7 +789,7 @@ export default function PokePlanetLiveWall() {
       style={{
         minHeight: "100vh",
         color: "white",
-        padding: isDisplayMode ? 6 : 10,
+        padding: isDisplayMode ? 4 : 10,
         fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
         backgroundImage: "url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=2000&q=80')",
         backgroundSize: "cover",
@@ -801,7 +801,7 @@ export default function PokePlanetLiveWall() {
     >
       {confettiTrigger !== 0 && <ConfettiLayer trigger={confettiTrigger} />}
 
-      <div style={{ maxWidth: isMobilePreview ? 430 : isDisplayMode ? 900 : 1800, margin: "0 auto" }}>
+      <div style={{ maxWidth: isMobilePreview ? 430 : isDisplayMode ? 860 : 1800, margin: "0 auto" }}>
         {(isOperatorMode || isStreamMode || isMobilePreview === false) && !isDisplayMode && (
           <>
             <div
@@ -932,7 +932,7 @@ export default function PokePlanetLiveWall() {
               style={{
                 display: "grid",
                 gridTemplateColumns: gridColumns,
-                gap: isDisplayMode ? 8 : 12,
+                gap: isDisplayMode ? 6 : isStreamMode ? 8 : 12,
                 alignItems: "start",
               }}
             >
@@ -945,6 +945,7 @@ export default function PokePlanetLiveWall() {
                   clearHitFx={clearHitFx}
                   vanishFx={vanishFx[hit.id]}
                   compact={isStreamMode || isMobilePreview}
+                  ultraCompact={isDisplayMode}
                 />
               ))}
             </div>

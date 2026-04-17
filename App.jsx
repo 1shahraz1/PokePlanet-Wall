@@ -262,7 +262,7 @@ export default function PokePlanetLiveWall() {
   const pushStateToSupabase = async (nextHits, nextBaseHits = null, nextColumns = columns, nextSortByTier = sortByTier, effectTick = null) => {
     const payload = {
       id: SESSION_ID,
-      state: { hits: nextHits, baseHits: nextBaseHits || baseHits, columns: nextColumns, sortByTier: nextSortByTier, effectTick },
+      state: { hits: nextHits, baseHits: nextBaseHits || baseHits, columns: nextColumns, sortByTier: nextSortByTier, effectTick, effectHitId: null, soldOutHitId: null },
       updated_at: new Date().toISOString(),
     };
     const { error: upsertError } = await supabase.from("wall_sessions").upsert(payload, { onConflict: "id" });
@@ -343,6 +343,26 @@ export default function PokePlanetLiveWall() {
           if (typeof nextState.columns === "number") setColumns(nextState.columns);
           if (typeof nextState.sortByTier === "boolean") setSortByTier(nextState.sortByTier);
           if (typeof nextState.effectTick === "number") setConfettiTrigger(nextState.effectTick);
+          if (nextState.effectHitId) {
+            setHitFx((prev) => ({ ...prev, [nextState.effectHitId]: nextState.effectTick || Date.now() }));
+            window.setTimeout(() => {
+              setHitFx((prev) => {
+                const next = { ...prev };
+                delete next[nextState.effectHitId];
+                return next;
+              });
+            }, 520);
+          }
+          if (nextState.soldOutHitId) {
+            setVanishFx((prev) => ({ ...prev, [nextState.soldOutHitId]: true }));
+            window.setTimeout(() => {
+              setVanishFx((prev) => {
+                const next = { ...prev };
+                delete next[nextState.soldOutHitId];
+                return next;
+              });
+            }, 320);
+          }
           saveFallbackState(nextHits, nextBaseHits, nextState.columns ?? columns, nextState.sortByTier ?? sortByTier);
           setSyncStatus("Live sync connected");
         } catch (validationErr) {
@@ -396,7 +416,7 @@ export default function PokePlanetLiveWall() {
       setUndoStack([]);
       setSelectedHitId(parsed[0]?.id || "");
       setManualQty(parsed[0]?.qty || 0);
-      await syncState(parsed, parsed);
+      await syncState(parsed, parsed, columns, sortByTier, null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load sheet");
     } finally {
@@ -425,7 +445,26 @@ export default function PokePlanetLiveWall() {
     setHits(nextHits);
     const selected = nextHits.find((hit) => hit.id === selectedHitId);
     if (selected) setManualQty(selected.qty);
-    await syncState(nextHits, null, columns, sortByTier, nextEffectTick);
+    try {
+      saveFallbackState(nextHits, null, columns, sortByTier);
+      await supabase.from("wall_sessions").upsert({
+        id: SESSION_ID,
+        state: {
+          hits: nextHits,
+          baseHits,
+          columns,
+          sortByTier,
+          effectTick: nextEffectTick,
+          effectHitId: id,
+          soldOutHitId: clicked.qty === 1 ? id : null,
+        },
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "id" });
+      setSyncStatus("Live sync connected");
+    } catch (err) {
+      console.error(err);
+      setSyncStatus("Using local fallback sync");
+    }
   };
 
   const handleUndo = async () => {
@@ -436,7 +475,7 @@ export default function PokePlanetLiveWall() {
     setHits(previous);
     const selected = previous.find((hit) => hit.id === selectedHitId);
     if (selected) setManualQty(selected.qty);
-    await syncState(previous);
+    await syncState(previous, null, columns, sortByTier, null);
   };
 
   const resetWall = async () => {
@@ -450,18 +489,18 @@ export default function PokePlanetLiveWall() {
       setSelectedHitId(selected.id);
       setManualQty(selected.qty);
     }
-    await syncState(baseHits, baseHits);
+    await syncState(baseHits, baseHits, columns, sortByTier, null);
   };
 
   const updateColumns = async (value) => {
     setColumns(value);
-    await syncState(hits, null, value, sortByTier);
+    await syncState(hits, null, value, sortByTier, null);
   };
 
   const toggleTierSort = async () => {
     const next = !sortByTier;
     setSortByTier(next);
-    await syncState(hits, null, columns, next);
+    await syncState(hits, null, columns, next, null);
   };
 
   const applyManualQuantity = async () => {
@@ -469,7 +508,7 @@ export default function PokePlanetLiveWall() {
     setUndoStack((prev) => [...prev, hits]);
     const nextHits = updateHitQuantity(hits, selectedHitId, manualQty);
     setHits(nextHits);
-    await syncState(nextHits);
+    await syncState(nextHits, null, columns, sortByTier, null);
   };
 
   const selectedHit = hits.find((hit) => hit.id === selectedHitId);

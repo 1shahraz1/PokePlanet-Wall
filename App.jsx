@@ -292,7 +292,7 @@ function BigHitReveal({ hit, trigger, onDone }) {
     <AnimatePresence>
       <motion.div
         key={`big-hit-${hit.id}-${trigger}`}
-        style={{ position: "fixed", inset: 0, zIndex: 55, pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle at center, rgba(0,0,0,0.3), rgba(0,0,0,0.1), rgba(0,0,0,0))", overflow: "hidden" }}
+        style={{ position: "fixed", left: 0, right: 0, top: "6vh", height: "46vh", zIndex: 55, pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle at center, rgba(0,0,0,0.22), rgba(0,0,0,0.08), rgba(0,0,0,0))", overflow: "hidden" }}
         initial={{ opacity: 0 }}
         animate={{ opacity: [0, 1, 1, 1, 0] }}
         exit={{ opacity: 0 }}
@@ -300,12 +300,12 @@ function BigHitReveal({ hit, trigger, onDone }) {
         onAnimationComplete={onDone}
       >
         <motion.div
-          style={{ width: "min(58vw, 520px)", maxWidth: "92vw", borderRadius: 24, border: style.border, background: "rgba(5,10,25,0.78)", boxShadow: `0 0 28px ${style.qtyColor}, 0 0 80px rgba(255,255,255,0.28)`, overflow: "hidden", position: "relative", zIndex: 3 }}
-          initial={{ scale: 0.12, rotate: -10, y: 140, opacity: 0 }}
-          animate={{ scale: [0.12, 1.05, 1.05, 1.1, 0.05], rotate: [-10, 2, 0, -1, 8], y: [140, 0, 0, 0, -20], opacity: [0, 1, 1, 1, 0] }}
+          style={{ width: "min(42vw, 360px)", maxWidth: "74vw", borderRadius: 24, border: style.border, background: "rgba(5,10,25,0.78)", boxShadow: `0 0 28px ${style.qtyColor}, 0 0 80px rgba(255,255,255,0.28)`, overflow: "hidden", position: "relative", zIndex: 3 }}
+          initial={{ scale: 0.12, rotate: -10, y: 60, opacity: 0 }}
+          animate={{ scale: [0.12, 1.05, 1.05, 1.1, 0.05], rotate: [-10, 2, 0, -1, 8], y: [60, 0, 0, 0, -10], opacity: [0, 1, 1, 1, 0] }}
           transition={{ duration: 3.38, times: [0, 0.24, 0.72, 0.9, 1], ease: "easeOut" }}
         >
-          <div style={{ height: "min(42vh, 360px)", background: "rgba(0,0,0,0.25)", position: "relative" }}>
+          <div style={{ height: "min(24vh, 210px)", background: "rgba(0,0,0,0.25)", position: "relative" }}>
             <img src={hit.image} alt={hit.title} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", filter: "drop-shadow(0 12px 26px rgba(0,0,0,0.55))" }} />
           </div>
           <div style={{ padding: "14px 18px", background: "rgba(0,0,0,0.72)", textAlign: "center" }}>

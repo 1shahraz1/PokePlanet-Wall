@@ -6,10 +6,15 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1_6BofkPrDSdcB7PDL
 const SUPABASE_URL = "https://ghylqwpkcuwjpcgzffue.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_g9SX3hbI_sNJNoWTImIK4A_g92TCvuu";
 const SESSION_ID = "main-wall";
-const STORAGE_KEY = "pokeplanet-live-wall-fallback-state-v3";
-const BASE_HITS_KEY = "pokeplanet-live-wall-fallback-base-v3";
+const STORAGE_KEY = "pokeplanet-live-wall-fallback-state-v4";
+const BASE_HITS_KEY = "pokeplanet-live-wall-fallback-base-v4";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let supabaseClient = null;
+function getSupabase() {
+  if (typeof window === "undefined") return null;
+  if (!supabaseClient) supabaseClient = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  return supabaseClient;
+}
 
 const DEMO_HITS = [
   { id: "1", title: "MEGA LATIAS EX BOX", qty: 4, tier: "Chase", image: "https://images.pokemontcg.io/swsh11/115_hires.png" },
@@ -113,7 +118,7 @@ function updateHitQuantity(hits, id, qty) {
 }
 
 function sortHitsForStream(hits, sortByTier) {
-  const base = [...hits].sort((a, b) => {
+  return [...hits].sort((a, b) => {
     const aSoldOut = a.qty === 0 ? 1 : 0;
     const bSoldOut = b.qty === 0 ? 1 : 0;
     if (aSoldOut !== bSoldOut) return aSoldOut - bSoldOut;
@@ -123,7 +128,6 @@ function sortHitsForStream(hits, sortByTier) {
     }
     return a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: "base" });
   });
-  return base;
 }
 
 function runTests() {
@@ -148,23 +152,97 @@ function runTests() {
   const parsed = parseCsv(csv);
   if (parsed.length !== 1 || parsed[0].tier !== "Chase" || parsed[0].qty !== 3) throw new Error("parseCsv should parse rows correctly");
 }
-runTests();
+if (typeof window !== "undefined") {
+  try {
+    runTests();
+  } catch (err) {
+    console.error("PokePlanet wall self-test failed:", err);
+  }
+}
 
 function pillStyle(bg) {
   return { background: bg, color: "#fff", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 9999, padding: "4px 8px", fontSize: 12, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.04em", lineHeight: 1 };
 }
 
 function BurstEffect({ onDone }) {
-  const particles = Array.from({ length: 14 }).map((_, i) => {
-    const angle = (i / 14) * Math.PI * 2;
-    const radius = 45 + (i % 4) * 14;
-    return { id: i, x: Math.cos(angle) * radius, y: Math.sin(angle) * radius, scale: 0.8 + (i % 3) * 0.2 };
+  const particles = Array.from({ length: 24 }).map((_, i) => {
+    const angle = (i / 24) * Math.PI * 2;
+    const radius = 80 + (i % 6) * 25;
+    return {
+      id: i,
+      x: Math.cos(angle) * radius,
+      y: Math.sin(angle) * radius,
+      scale: 0.8 + (i % 4) * 0.3,
+    };
   });
+
   return (
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", borderRadius: 16, zIndex: 30 }}>
-      <motion.div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(253,224,71,0.35), rgba(251,146,60,0.18), rgba(232,121,249,0.22))" }} initial={{ opacity: 0 }} animate={{ opacity: [0, 0.9, 0.08, 0] }} transition={{ duration: 0.6, ease: "easeOut" }} />
-      <motion.div style={{ position: "absolute", left: "50%", top: "50%", width: 64, height: 64, transform: "translate(-50%, -50%)", borderRadius: 9999, border: "2px solid rgba(254,240,138,0.95)" }} initial={{ scale: 0.2, opacity: 1 }} animate={{ scale: 3, opacity: 0 }} transition={{ duration: 0.5, ease: "easeOut" }} onAnimationComplete={onDone} />
-      {particles.map((p) => <motion.div key={p.id} style={{ position: "absolute", left: "50%", top: "50%", width: 10, height: 10, transform: "translate(-50%, -50%)", borderRadius: 9999, background: "rgba(254,240,138,1)", boxShadow: "0 0 18px rgba(253,224,71,1)" }} initial={{ x: 0, y: 0, opacity: 1, scale: 1.1 }} animate={{ x: p.x, y: p.y, opacity: 0, scale: p.scale }} transition={{ duration: 0.45, ease: "easeOut" }} />)}
+      <motion.div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "radial-gradient(circle, rgba(255,255,255,0.65), rgba(253,224,71,0.38), rgba(232,121,249,0.24), transparent)",
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, 1, 0] }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+      />
+
+      <motion.div
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          width: 80,
+          height: 80,
+          transform: "translate(-50%, -50%)",
+          borderRadius: 9999,
+          border: "4px solid rgba(255,255,255,0.92)",
+          boxShadow: "0 0 60px rgba(255,255,255,0.95), 0 0 90px rgba(253,224,71,0.75)",
+        }}
+        initial={{ scale: 0.2, opacity: 1 }}
+        animate={{ scale: 6, opacity: 0 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        onAnimationComplete={onDone}
+      />
+
+      <motion.div
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          width: 120,
+          height: 120,
+          transform: "translate(-50%, -50%)",
+          borderRadius: 9999,
+          background: "rgba(255,255,255,0.72)",
+          filter: "blur(18px)",
+        }}
+        initial={{ scale: 0.25, opacity: 0 }}
+        animate={{ scale: [0.25, 2.2, 3.6], opacity: [0, 0.85, 0] }}
+        transition={{ duration: 0.72, ease: "easeOut" }}
+      />
+
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            width: 12,
+            height: 12,
+            transform: "translate(-50%, -50%)",
+            borderRadius: 9999,
+            background: "rgba(255,255,255,1)",
+            boxShadow: "0 0 22px rgba(253,224,71,1)",
+          }}
+          initial={{ x: 0, y: 0, opacity: 1, scale: 1.2 }}
+          animate={{ x: p.x, y: p.y, opacity: 0, scale: p.scale }}
+          transition={{ duration: 0.65, ease: "easeOut" }}
+        />
+      ))}
     </div>
   );
 }
@@ -186,14 +264,111 @@ function ConfettiLayer({ trigger }) {
   );
 }
 
+function BigHitReveal({ hit, trigger, onDone }) {
+  if (!hit) return null;
+  const style = tierStyles[hit.tier] || tierStyles.Standard;
+  const shards = Array.from({ length: 48 }).map((_, i) => {
+    const angle = (i / 48) * Math.PI * 2;
+    const distance = 260 + (i % 8) * 90;
+    return {
+      id: i,
+      x: Math.cos(angle) * distance,
+      y: Math.sin(angle) * distance,
+      rotate: (i % 2 === 0 ? 1 : -1) * (240 + i * 37),
+      delay: 3.0 + (i % 6) * 0.02,
+      size: 20 + (i % 5) * 10,
+      radius: 4 + (i % 3) * 4,
+      clip: [
+        "polygon(0 0, 100% 6%, 82% 100%, 6% 72%)",
+        "polygon(10% 0, 100% 16%, 86% 90%, 0 100%)",
+        "polygon(0 18%, 76% 0, 100% 100%, 14% 78%)",
+        "polygon(18% 0, 100% 0, 70% 100%, 0 74%)",
+        "polygon(6% 0, 94% 12%, 100% 100%, 0 92%)",
+      ][i % 5],
+    };
+  });
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        key={`big-hit-${hit.id}-${trigger}`}
+        style={{ position: "fixed", inset: 0, zIndex: 55, pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle at center, rgba(0,0,0,0.3), rgba(0,0,0,0.1), rgba(0,0,0,0))", overflow: "hidden" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, 1, 1, 1, 0] }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 4.4, times: [0, 0.12, 0.7, 0.88, 1], ease: "easeOut" }}
+        onAnimationComplete={onDone}
+      >
+        <motion.div
+          style={{ width: "min(58vw, 520px)", maxWidth: "92vw", borderRadius: 24, border: style.border, background: "rgba(5,10,25,0.78)", boxShadow: `0 0 28px ${style.qtyColor}, 0 0 80px rgba(255,255,255,0.28)`, overflow: "hidden", position: "relative", zIndex: 3 }}
+          initial={{ scale: 0.12, rotate: -10, y: 140, opacity: 0 }}
+          animate={{ scale: [0.12, 1.05, 1.05, 1.1, 0.05], rotate: [-10, 2, 0, -1, 8], y: [140, 0, 0, 0, -20], opacity: [0, 1, 1, 1, 0] }}
+          transition={{ duration: 3.38, times: [0, 0.24, 0.72, 0.9, 1], ease: "easeOut" }}
+        >
+          <div style={{ height: "min(42vh, 360px)", background: "rgba(0,0,0,0.25)", position: "relative" }}>
+            <img src={hit.image} alt={hit.title} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", filter: "drop-shadow(0 12px 26px rgba(0,0,0,0.55))" }} />
+          </div>
+          <div style={{ padding: "14px 18px", background: "rgba(0,0,0,0.72)", textAlign: "center" }}>
+            <div style={{ fontSize: 24, fontWeight: 950, color: "white", textTransform: "uppercase", lineHeight: 1.05, textShadow: `0 0 14px ${style.qtyColor}` }}>{hit.title}</div>
+            <div style={{ marginTop: 6, fontSize: 14, fontWeight: 900, color: style.qtyColor, letterSpacing: "0.12em", textTransform: "uppercase" }}>BANG!</div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          style={{ position: "absolute", left: "50%", top: "50%", width: 110, height: 110, marginLeft: -55, marginTop: -55, borderRadius: 9999, border: "5px solid rgba(255,255,255,0.95)", boxShadow: `0 0 52px ${style.qtyColor}, 0 0 110px rgba(255,255,255,0.8)`, zIndex: 6 }}
+          initial={{ scale: 0.2, opacity: 0 }}
+          animate={{ scale: [0.2, 3.8, 7.2], opacity: [0, 1, 0] }}
+          transition={{ duration: 1.0, delay: 3.0, ease: "easeOut" }}
+        />
+
+        <motion.div
+          style={{ position: "absolute", left: "50%", top: "50%", width: 180, height: 180, marginLeft: -90, marginTop: -90, borderRadius: 9999, background: "rgba(255,255,255,0.72)", filter: "blur(22px)", zIndex: 5 }}
+          initial={{ scale: 0.2, opacity: 0 }}
+          animate={{ scale: [0.2, 2.6, 4.8], opacity: [0, 0.9, 0] }}
+          transition={{ duration: 0.95, delay: 3.0, ease: "easeOut" }}
+        />
+
+        {shards.map((shard) => (
+          <motion.div
+            key={shard.id}
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              width: shard.size,
+              height: shard.size * 1.2,
+              marginLeft: -shard.size / 2,
+              marginTop: -(shard.size * 1.2) / 2,
+              backgroundImage: `url(${hit.image})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              clipPath: shard.clip,
+              borderRadius: shard.radius,
+              boxShadow: `0 0 18px ${style.qtyColor}, 0 10px 22px rgba(0,0,0,0.45)`,
+              zIndex: 7,
+            }}
+            initial={{ x: 0, y: 0, opacity: 0, scale: 0.2, rotate: 0 }}
+            animate={{
+              x: [0, shard.x * 0.24, shard.x],
+              y: [0, shard.y * 0.24, shard.y],
+              opacity: [0, 1, 0],
+              scale: [0.2, 1.2, 0.55],
+              rotate: [0, shard.rotate * 0.35, shard.rotate],
+            }}
+            transition={{ duration: 1.25, delay: shard.delay, ease: "easeOut", times: [0, 0.22, 1] }}
+          />
+        ))}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 function QuantityBadge({ qty, color }) {
   const soldOut = qty === 0;
   return (
     <div style={{ position: "absolute", top: 8, right: 8, minWidth: 28, height: 28, padding: "0 6px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 9999, background: soldOut ? "rgba(229,231,235,0.96)" : "rgba(0,0,0,0.82)", color: soldOut ? "#6b7280" : color, fontWeight: 900, fontSize: 14, border: "1px solid rgba(255,255,255,0.16)", boxShadow: soldOut ? "0 2px 8px rgba(0,0,0,0.12)" : `0 0 12px ${color}, 0 0 28px ${color}` }}>
       <AnimatePresence mode="wait">
-        <motion.span key={qty} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: [1.4, 1], opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }} transition={{ duration: 0.25 }} style={{ textShadow: soldOut ? "none" : `0 0 4px ${color}, 0 0 10px ${color}` }}>
-          x{qty}
-        </motion.span>
+        <motion.span key={qty} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: [1.4, 1], opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }} transition={{ duration: 0.25 }} style={{ textShadow: soldOut ? "none" : `0 0 4px ${color}, 0 0 10px ${color}` }}>x{qty}</motion.span>
       </AnimatePresence>
     </div>
   );
@@ -209,7 +384,7 @@ function HitCard({ hit, onHit, hitFx, clearHitFx, vanishFx, compact = false, ult
         {vanishFx && <VanishEffect />}
         <motion.div animate={hitFx ? { scale: [1, 1.15, 0.92, 1.08, 1], rotate: [0, -2, 2, -1, 0] } : { scale: 1, rotate: 0 }} transition={{ duration: 0.42, ease: "easeOut" }}>
           <div style={{ position: "relative", height: ultraCompact ? 96 : compact ? 120 : 180 }}>
-            <img src={hit.image} alt={hit.title} loading="eager" onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80"; }} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", background: soldOut ? "rgba(31,41,55,0.3)" : "rgba(0,0,0,0.2)", filter: soldOut ? "grayscale(1) brightness(0.75)" : "none" }} />
+            <img src={hit.image} alt={hit.title} loading="eager" onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80"; }} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", background: soldOut ? "rgba(31,41,55,0.3)" : "rgba(0,0,0,0.15)", filter: soldOut ? "grayscale(1) brightness(0.75)" : "none" }} />
             <div style={{ position: "absolute", inset: 0, background: soldOut ? "linear-gradient(to top, rgba(17,24,39,0.25), rgba(17,24,39,0.05), rgba(17,24,39,0))" : "linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0.18), rgba(0,0,0,0.05))" }} />
             {!compact && !ultraCompact && <div style={{ position: "absolute", top: 8, left: 8 }}><span style={pillStyle(style.badge)}>{hit.tier}</span></div>}
             <QuantityBadge qty={hit.qty} color={style.qtyColor} />
@@ -228,7 +403,6 @@ export default function PokePlanetLiveWall() {
   const isBrowser = typeof window !== "undefined";
   const params = new URLSearchParams(isBrowser ? window.location.search : "");
   const mode = params.get("mode") || "operator";
-  const isOperatorMode = mode === "operator";
   const isDisplayMode = mode === "display";
   const isMobilePreview = mode === "mobile";
   const isStreamMode = mode === "stream" || mode === "display";
@@ -239,6 +413,7 @@ export default function PokePlanetLiveWall() {
   const [hitFx, setHitFx] = useState({});
   const [vanishFx, setVanishFx] = useState({});
   const [confettiTrigger, setConfettiTrigger] = useState(0);
+  const [bigHitReveal, setBigHitReveal] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [columns, setColumns] = useState(3);
@@ -259,20 +434,21 @@ export default function PokePlanetLiveWall() {
     if (nextBaseHits) window.localStorage.setItem(BASE_HITS_KEY, JSON.stringify(nextBaseHits));
   };
 
-  const pushStateToSupabase = async (nextHits, nextBaseHits = null, nextColumns = columns, nextSortByTier = sortByTier, effectTick = null) => {
-    const payload = {
+  const pushStateToSupabase = async (nextHits, nextBaseHits = null, nextColumns = columns, nextSortByTier = sortByTier, effectTick = null, effectHitId = null, soldOutHitId = null) => {
+    const supabase = getSupabase();
+    if (!supabase) throw new Error("Supabase is not available in this environment");
+    const { error: upsertError } = await supabase.from("wall_sessions").upsert({
       id: SESSION_ID,
-      state: { hits: nextHits, baseHits: nextBaseHits || baseHits, columns: nextColumns, sortByTier: nextSortByTier, effectTick, effectHitId: null, soldOutHitId: null },
+      state: { hits: nextHits, baseHits: nextBaseHits || baseHits, columns: nextColumns, sortByTier: nextSortByTier, effectTick, effectHitId, soldOutHitId },
       updated_at: new Date().toISOString(),
-    };
-    const { error: upsertError } = await supabase.from("wall_sessions").upsert(payload, { onConflict: "id" });
+    }, { onConflict: "id" });
     if (upsertError) throw upsertError;
   };
 
-  const syncState = async (nextHits, nextBaseHits = null, nextColumns = columns, nextSortByTier = sortByTier, effectTick = null) => {
+  const syncState = async (nextHits, nextBaseHits = null, nextColumns = columns, nextSortByTier = sortByTier, effectTick = null, effectHitId = null, soldOutHitId = null) => {
     saveFallbackState(nextHits, nextBaseHits, nextColumns, nextSortByTier);
     try {
-      await pushStateToSupabase(nextHits, nextBaseHits, nextColumns, nextSortByTier, effectTick);
+      await pushStateToSupabase(nextHits, nextBaseHits, nextColumns, nextSortByTier, effectTick, effectHitId, soldOutHitId);
       setSyncStatus("Live sync connected");
     } catch (err) {
       console.error(err);
@@ -286,6 +462,8 @@ export default function PokePlanetLiveWall() {
     const boot = async () => {
       let hydrated = false;
       try {
+        const supabase = getSupabase();
+        if (!supabase) throw new Error("Supabase is not available in this environment");
         const { data, error: fetchError } = await supabase.from("wall_sessions").select("state").eq("id", SESSION_ID).maybeSingle();
         if (fetchError) throw fetchError;
         if (data?.state) {
@@ -330,6 +508,8 @@ export default function PokePlanetLiveWall() {
           setSyncStatus("Using demo data");
         }
       }
+      const supabase = getSupabase();
+      if (!supabase) return;
       const channel = supabase.channel("pokeplanet-wall-session").on("postgres_changes", { event: "*", schema: "public", table: "wall_sessions", filter: `id=eq.${SESSION_ID}` }, (payload) => {
         const nextState = payload.new?.state;
         if (!nextState) return;
@@ -342,8 +522,11 @@ export default function PokePlanetLiveWall() {
           setBaseHits(nextBaseHits);
           if (typeof nextState.columns === "number") setColumns(nextState.columns);
           if (typeof nextState.sortByTier === "boolean") setSortByTier(nextState.sortByTier);
-          if (typeof nextState.effectTick === "number") setConfettiTrigger(nextState.effectTick);
+          if (typeof nextState.effectTick === "number" && !nextState.effectHitId) setConfettiTrigger(nextState.effectTick);
           if (nextState.effectHitId) {
+            const revealedHit = nextHits.find((hit) => hit.id === nextState.effectHitId) || hits.find((hit) => hit.id === nextState.effectHitId);
+            setBigHitReveal({ hit: revealedHit, trigger: nextState.effectTick || Date.now() });
+            window.setTimeout(() => setConfettiTrigger(nextState.effectTick || Date.now()), 3400);
             setHitFx((prev) => ({ ...prev, [nextState.effectHitId]: nextState.effectTick || Date.now() }));
             window.setTimeout(() => {
               setHitFx((prev) => {
@@ -375,7 +558,8 @@ export default function PokePlanetLiveWall() {
     };
     boot();
     return () => {
-      if (channelRef.current) supabase.removeChannel(channelRef.current);
+      const supabase = getSupabase();
+      if (channelRef.current && supabase) supabase.removeChannel(channelRef.current);
     };
   }, [isBrowser]);
 
@@ -416,7 +600,7 @@ export default function PokePlanetLiveWall() {
       setUndoStack([]);
       setSelectedHitId(parsed[0]?.id || "");
       setManualQty(parsed[0]?.qty || 0);
-      await syncState(parsed, parsed, columns, sortByTier, null);
+      await syncState(parsed, parsed, columns, sortByTier, null, null, null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load sheet");
     } finally {
@@ -428,7 +612,8 @@ export default function PokePlanetLiveWall() {
     const clicked = hits.find((hit) => hit.id === id);
     if (!clicked || clicked.qty === 0) return;
     const nextEffectTick = Date.now();
-    setConfettiTrigger(nextEffectTick);
+    setBigHitReveal({ hit: clicked, trigger: nextEffectTick });
+    window.setTimeout(() => setConfettiTrigger(nextEffectTick), 3400);
     setHitFx((prev) => ({ ...prev, [id]: nextEffectTick }));
     setUndoStack((prev) => [...prev, hits]);
     if (clicked.qty === 1) {
@@ -445,26 +630,7 @@ export default function PokePlanetLiveWall() {
     setHits(nextHits);
     const selected = nextHits.find((hit) => hit.id === selectedHitId);
     if (selected) setManualQty(selected.qty);
-    try {
-      saveFallbackState(nextHits, null, columns, sortByTier);
-      await supabase.from("wall_sessions").upsert({
-        id: SESSION_ID,
-        state: {
-          hits: nextHits,
-          baseHits,
-          columns,
-          sortByTier,
-          effectTick: nextEffectTick,
-          effectHitId: id,
-          soldOutHitId: clicked.qty === 1 ? id : null,
-        },
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "id" });
-      setSyncStatus("Live sync connected");
-    } catch (err) {
-      console.error(err);
-      setSyncStatus("Using local fallback sync");
-    }
+    await syncState(nextHits, null, columns, sortByTier, nextEffectTick, id, clicked.qty === 1 ? id : null);
   };
 
   const handleUndo = async () => {
@@ -475,7 +641,7 @@ export default function PokePlanetLiveWall() {
     setHits(previous);
     const selected = previous.find((hit) => hit.id === selectedHitId);
     if (selected) setManualQty(selected.qty);
-    await syncState(previous, null, columns, sortByTier, null);
+    await syncState(previous, null, columns, sortByTier, null, null, null);
   };
 
   const resetWall = async () => {
@@ -489,18 +655,18 @@ export default function PokePlanetLiveWall() {
       setSelectedHitId(selected.id);
       setManualQty(selected.qty);
     }
-    await syncState(baseHits, baseHits, columns, sortByTier, null);
+    await syncState(baseHits, baseHits, columns, sortByTier, null, null, null);
   };
 
   const updateColumns = async (value) => {
     setColumns(value);
-    await syncState(hits, null, value, sortByTier, null);
+    await syncState(hits, null, value, sortByTier, null, null, null);
   };
 
   const toggleTierSort = async () => {
     const next = !sortByTier;
     setSortByTier(next);
-    await syncState(hits, null, columns, next, null);
+    await syncState(hits, null, columns, next, null, null, null);
   };
 
   const applyManualQuantity = async () => {
@@ -508,19 +674,19 @@ export default function PokePlanetLiveWall() {
     setUndoStack((prev) => [...prev, hits]);
     const nextHits = updateHitQuantity(hits, selectedHitId, manualQty);
     setHits(nextHits);
-    await syncState(nextHits, null, columns, sortByTier, null);
+    await syncState(nextHits, null, columns, sortByTier, null, null, null);
   };
 
   const selectedHit = hits.find((hit) => hit.id === selectedHitId);
   const displayColumns = Math.max(3, columns);
-  const displayRows = Math.max(1, Math.ceil(visibleHits.length / displayColumns));
   const frameHeight = isDisplayMode ? "auto" : isStreamMode ? "44vh" : "auto";
-  const gridColumns = isDisplayMode ? `repeat(${displayColumns}, 1fr)` : isMobilePreview ? "1fr" : isStreamMode ? `repeat(${displayColumns}, 1fr)` : "repeat(auto-fit, minmax(240px, 1fr))";
+  const gridColumns = isDisplayMode ? `repeat(${displayColumns}, minmax(0, 1fr))` : isMobilePreview ? "1fr" : isStreamMode ? `repeat(${displayColumns}, minmax(0, 1fr))` : "repeat(auto-fit, minmax(240px, 1fr))";
 
   return (
     <div style={{ minHeight: "100vh", color: "white", padding: isDisplayMode ? 4 : 10, fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", backgroundImage: "url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=2000&q=80')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundAttachment: "fixed", backgroundColor: "#020617" }}>
+      {bigHitReveal && <BigHitReveal hit={bigHitReveal.hit} trigger={bigHitReveal.trigger} onDone={() => setBigHitReveal(null)} />}
       {confettiTrigger !== 0 && <ConfettiLayer trigger={confettiTrigger} />}
-      <div style={{ maxWidth: isMobilePreview ? 430 : isDisplayMode ? 860 : 1800, margin: "0 auto" }}>
+      <div style={{ maxWidth: isMobilePreview ? 430 : isDisplayMode ? 760 : 1800, margin: "0 auto", paddingLeft: isDisplayMode ? 18 : 0, paddingRight: isDisplayMode ? 18 : 0, boxSizing: "border-box" }}>
         {!isDisplayMode && (
           <>
             <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 12, alignItems: "start", marginBottom: 12 }}>
@@ -557,9 +723,9 @@ export default function PokePlanetLiveWall() {
             )}
           </>
         )}
-        <div style={{ height: frameHeight, overflow: isStreamMode ? "hidden" : "visible" }}>
+        <div style={{ height: frameHeight, overflow: isDisplayMode ? "visible" : isStreamMode ? "hidden" : "visible", paddingBottom: isDisplayMode ? 18 : 0 }}>
           <AnimatePresence mode="popLayout">
-            <div style={{ display: "grid", gridTemplateColumns: gridColumns, gap: isDisplayMode ? 6 : isStreamMode ? 8 : 12, alignItems: "start" }}>
+            <div style={{ display: "grid", gridTemplateColumns: gridColumns, gap: isDisplayMode ? 8 : isStreamMode ? 8 : 12, alignItems: "start", justifyContent: "center" }}>
               {visibleHits.map((hit) => <HitCard key={hit.id} hit={hit} onHit={handleHit} hitFx={hitFx[hit.id]} clearHitFx={clearHitFx} vanishFx={vanishFx[hit.id]} compact={isStreamMode || isMobilePreview} ultraCompact={isDisplayMode} disableClicks={isDisplayMode} />)}
             </div>
           </AnimatePresence>

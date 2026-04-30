@@ -300,7 +300,7 @@ function BigHitReveal({ hit, trigger, onDone }) {
         onAnimationComplete={onDone}
       >
         <motion.div
-          style={{ width: "min(38vw, 320px)", maxWidth: "70vw", borderRadius: 24, border: style.border, background: "rgba(5,10,25,0.78)", boxShadow: `0 0 28px ${style.qtyColor}, 0 0 80px rgba(255,255,255,0.28)`, overflow: "hidden", position: "relative", zIndex: 3 }}
+          style={{ width: "min(46vw, 420px)", maxWidth: "80vw", borderRadius: 24, border: style.border, background: "rgba(5,10,25,0.78)", boxShadow: `0 0 28px ${style.qtyColor}, 0 0 80px rgba(255,255,255,0.28)`, overflow: "hidden", position: "relative", zIndex: 3 }}
           initial={{ scale: 0.12, rotate: -10, y: 60, opacity: 0 }}
           animate={{ scale: [0.12, 1.05, 1.05, 1.1, 0.05], rotate: [-10, 2, 0, -1, 8], y: [60, 0, 0, 0, -10], opacity: [0, 1, 1, 1, 0] }}
           transition={{ duration: 3.38, times: [0, 0.24, 0.72, 0.9, 1], ease: "easeOut" }}

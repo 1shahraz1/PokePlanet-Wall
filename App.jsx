@@ -255,6 +255,68 @@ function VanishEffect() {
   );
 }
 
+let sharedAudioCtx = null;
+
+function getAudioContext() {
+  if (typeof window === "undefined") return null;
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return null;
+  if (!sharedAudioCtx) sharedAudioCtx = new AudioContextClass();
+  return sharedAudioCtx;
+}
+
+async function unlockAudio() {
+  const audioCtx = getAudioContext();
+  if (!audioCtx) return false;
+  if (audioCtx.state === "suspended") await audioCtx.resume();
+
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  oscillator.frequency.value = 880;
+  gainNode.gain.value = 0.0001;
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  oscillator.start();
+  oscillator.stop(audioCtx.currentTime + 0.03);
+  return true;
+}
+
+function playTone({ frequency = 440, duration = 0.2, type = "sine", gain = 0.08, slideTo = null }) {
+  const audioCtx = getAudioContext();
+  if (!audioCtx || audioCtx.state !== "running") return;
+
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+  if (slideTo) oscillator.frequency.exponentialRampToValueAtTime(slideTo, audioCtx.currentTime + duration);
+
+  gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(gain, audioCtx.currentTime + 0.02);
+  gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  oscillator.start();
+  oscillator.stop(audioCtx.currentTime + duration + 0.03);
+}
+
+function playWhoosh() {
+  playTone({ frequency: 180, slideTo: 720, duration: 0.55, type: "sawtooth", gain: 0.035 });
+}
+
+function playBoom() {
+  playTone({ frequency: 95, slideTo: 38, duration: 0.55, type: "sawtooth", gain: 0.16 });
+  window.setTimeout(() => playTone({ frequency: 52, slideTo: 28, duration: 0.45, type: "sine", gain: 0.18 }), 40);
+}
+
+function playSparkle() {
+  [740, 980, 1240, 1560].forEach((freq, index) => {
+    window.setTimeout(() => playTone({ frequency: freq, duration: 0.12, type: "triangle", gain: 0.045 }), index * 70);
+  });
+}
+
 function ConfettiLayer({ trigger }) {
   const pieces = Array.from({ length: 32 }).map((_, i) => ({ id: i, startX: Math.random() * 100, driftX: (Math.random() - 0.5) * 28, delay: Math.random() * 0.45, duration: 3.2 + Math.random() * 2.2, size: 6 + Math.random() * 8, hue: Math.random() * 360, rotateStart: Math.random() * 180, rotateEnd: 540 + Math.random() * 540, sway: 30 + Math.random() * 45, burstY: 6 + Math.random() * 12 }));
   return (
@@ -422,6 +484,7 @@ export default function PokePlanetLiveWall() {
   const [undoStack, setUndoStack] = useState([]);
   const [selectedHitId, setSelectedHitId] = useState("");
   const [manualQty, setManualQty] = useState(0);
+  const [soundEnabled, setSoundEnabled] = useState(false);
   const channelRef = useRef(null);
   const initialLoadRef = useRef(false);
 
@@ -526,6 +589,11 @@ export default function PokePlanetLiveWall() {
           if (nextState.effectHitId) {
             const revealedHit = nextHits.find((hit) => hit.id === nextState.effectHitId) || hits.find((hit) => hit.id === nextState.effectHitId);
             setBigHitReveal({ hit: revealedHit, trigger: nextState.effectTick || Date.now() });
+            if (soundEnabled) {
+              playWhoosh();
+              window.setTimeout(playBoom, 3000);
+              window.setTimeout(playSparkle, 3400);
+            }
             window.setTimeout(() => setConfettiTrigger(nextState.effectTick || Date.now()), 3400);
             setHitFx((prev) => ({ ...prev, [nextState.effectHitId]: nextState.effectTick || Date.now() }));
             window.setTimeout(() => {
@@ -613,6 +681,11 @@ export default function PokePlanetLiveWall() {
     if (!clicked || clicked.qty === 0) return;
     const nextEffectTick = Date.now();
     setBigHitReveal({ hit: clicked, trigger: nextEffectTick });
+    if (soundEnabled) {
+      playWhoosh();
+      window.setTimeout(playBoom, 3000);
+      window.setTimeout(playSparkle, 3400);
+    }
     window.setTimeout(() => setConfettiTrigger(nextEffectTick), 3400);
     setHitFx((prev) => ({ ...prev, [id]: nextEffectTick }));
     setUndoStack((prev) => [...prev, hits]);
@@ -689,7 +762,7 @@ export default function PokePlanetLiveWall() {
       <div style={{ maxWidth: isMobilePreview ? 430 : isDisplayMode ? 760 : 1800, margin: "0 auto", paddingLeft: isDisplayMode ? 18 : 0, paddingRight: isDisplayMode ? 18 : 0, boxSizing: "border-box" }}>
         {!isDisplayMode && (
           <>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 12, alignItems: "start", marginBottom: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto", gap: 12, alignItems: "start", marginBottom: 12 }}>
               <div style={{ padding: "12px 14px", borderRadius: 16, border: "1px solid rgba(34,211,238,0.18)", background: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)" }}>
                 <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: "-0.02em" }}>PokePlanet Live Wall</div>
                 <div style={{ fontSize: 18, color: "#cbd5e1", marginTop: 6 }}>Total Hits Left: <span style={{ color: "#67e8f9", fontWeight: 800 }}>{totalRemaining}</span></div>
@@ -697,6 +770,7 @@ export default function PokePlanetLiveWall() {
                 <div style={{ fontSize: 13, color: "#cbd5e1", marginTop: 4 }}>Modes: <strong>?mode=display</strong> for OBS, <strong>?mode=mobile</strong> for phone preview</div>
               </div>
               <button onClick={handleUndo} disabled={undoStack.length === 0} style={{ border: 0, borderRadius: 12, background: undoStack.length === 0 ? "#64748b" : "#f59e0b", color: "white", fontWeight: 900, fontSize: 16, padding: "12px 16px", cursor: undoStack.length === 0 ? "default" : "pointer" }}>Undo Last Hit</button>
+              <button onClick={async () => { const unlocked = await unlockAudio(); setSoundEnabled((prev) => !prev); if (!soundEnabled && unlocked) playSparkle(); }} style={{ border: 0, borderRadius: 12, background: soundEnabled ? "#10b981" : "#475569", color: "white", fontWeight: 900, fontSize: 16, padding: "12px 16px", cursor: "pointer" }}>{soundEnabled ? "Sound On" : "Sound Off"}</button>
               <button onClick={resetWall} style={{ border: 0, borderRadius: 12, background: "#22d3ee", color: "#020617", fontWeight: 900, fontSize: 18, padding: "12px 16px", cursor: "pointer", boxShadow: "0 6px 20px rgba(34,211,238,0.22)" }}>Reset Wall</button>
             </div>
             {!isMobilePreview && (

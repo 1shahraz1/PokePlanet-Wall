@@ -464,7 +464,7 @@ function PackRunBox({ count, pulse, isDisplayMode = false }) {
           transition={count >= 6 ? { duration: 0.8, repeat: Infinity, ease: "easeInOut" } : {}}
           style={{ fontSize: isDisplayMode ? 14 : 16, color: "#dbeafe", fontWeight: 900, textTransform: "uppercase" }}
         >
-          {count === 1 ? "pack" : "packs"} without a HIT!
+          {count === 1 ? "pack" : "packs"} without a BANGER!
         </motion.span>
       </div>
     </motion.div>

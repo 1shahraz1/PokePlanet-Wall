@@ -829,8 +829,7 @@ export default function PokePlanetLiveWall() {
 
   return (
     <div style={{ minHeight: "100vh", color: "white", padding: isDisplayMode ? 10 : 16, fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", backgroundImage: "url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=2000&q=80')",
-      backgroundColor: "#000814",
-      backgroundBlendMode: "multiply", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundAttachment: "fixed", backgroundColor: "#020617" }}>
+      backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundAttachment: "fixed", backgroundColor: "#020617" }}>
       {bigHitReveal && <BigHitReveal hit={bigHitReveal.hit} trigger={bigHitReveal.trigger} onDone={() => setBigHitReveal(null)} />}
       {confettiTrigger !== 0 && <ConfettiLayer trigger={confettiTrigger} />}
       <div style={{ maxWidth: isMobilePreview ? 430 : isDisplayMode ? 760 : 1800, margin: "0 auto", paddingLeft: isDisplayMode ? 18 : 0, paddingRight: isDisplayMode ? 18 : 0, boxSizing: "border-box" }}>

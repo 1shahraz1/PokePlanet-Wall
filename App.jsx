@@ -484,6 +484,8 @@ export default function PokePlanetLiveWall() {
   const [undoStack, setUndoStack] = useState([]);
   const [selectedHitId, setSelectedHitId] = useState("");
   const [manualQty, setManualQty] = useState(0);
+  const [packCount, setPackCount] = useState(0);
+  const [packPulse, setPackPulse] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const channelRef = useRef(null);
   const initialLoadRef = useRef(false);
@@ -497,21 +499,25 @@ export default function PokePlanetLiveWall() {
     if (nextBaseHits) window.localStorage.setItem(BASE_HITS_KEY, JSON.stringify(nextBaseHits));
   };
 
-  const pushStateToSupabase = async (nextHits, nextBaseHits = null, nextColumns = columns, nextSortByTier = sortByTier, effectTick = null, effectHitId = null, soldOutHitId = null) => {
+  const pushStateToSupabase = async (nextHits, nextBaseHits = null, nextColumns = columns, nextSortByTier = sortByTier, effectTick = null, effectHitId = null, soldOutHitId = null, nextPackCount = packCount, nextPackPulse = packPulse) => {
     const supabase = getSupabase();
     if (!supabase) throw new Error("Supabase is not available in this environment");
     const { error: upsertError } = await supabase.from("wall_sessions").upsert({
       id: SESSION_ID,
-      state: { hits: nextHits, baseHits: nextBaseHits || baseHits, columns: nextColumns, sortByTier: nextSortByTier, effectTick, effectHitId, soldOutHitId },
+      state: { hits: nextHits, baseHits: nextBaseHits || baseHits, columns: nextColumns, sortByTier: nextSortByTier, packCount: nextPackCount, packPulse: nextPackPulse, effectTick, effectHitId, soldOutHitId }
       updated_at: new Date().toISOString(),
     }, { onConflict: "id" });
     if (upsertError) throw upsertError;
   };
 
-  const syncState = async (nextHits, nextBaseHits = null, nextColumns = columns, nextSortByTier = sortByTier, effectTick = null, effectHitId = null, soldOutHitId = null) => {
+  const syncState = async (nextHits, nextBaseHits = null, nextColumns = columns, nextSortByTier = sortByTier, effectTick = null, effectHitId = null, soldOutHitId = null, nextPackCount = packCount, nextPackPulse = packPulse) => {
     saveFallbackState(nextHits, nextBaseHits, nextColumns, nextSortByTier);
     try {
-      await pushStateToSupabase(nextHits, nextBaseHits, nextColumns, nextSortByTier, effectTick, effectHitId, soldOutHitId);
+      const oldPackCount = packCount;
+      const oldPackPulse = packPulse;
+      setPackCount(nextPackCount);
+      setPackPulse(nextPackPulse);
+      await pushStateToSupabase(nextHits, nextBaseHits, nextColumns, nextSortByTier, effectTick, effectHitId, soldOutHitId, nextPackCount, nextPackPulse);
       setSyncStatus("Live sync connected");
     } catch (err) {
       console.error(err);
@@ -539,6 +545,8 @@ export default function PokePlanetLiveWall() {
           setBaseHits(nextBaseHits);
           if (typeof state.columns === "number") setColumns(state.columns);
           if (typeof state.sortByTier === "boolean") setSortByTier(state.sortByTier);
+          if (typeof state.packCount === "number") setPackCount(state.packCount);
+          if (typeof state.packPulse === "number") setPackPulse(state.packPulse);
           setSelectedHitId(nextHits[0]?.id || "");
           setManualQty(nextHits[0]?.qty || 0);
           setSyncStatus("Live sync connected");
@@ -585,6 +593,8 @@ export default function PokePlanetLiveWall() {
           setBaseHits(nextBaseHits);
           if (typeof nextState.columns === "number") setColumns(nextState.columns);
           if (typeof nextState.sortByTier === "boolean") setSortByTier(nextState.sortByTier);
+          if (typeof nextState.packCount === "number") setPackCount(nextState.packCount);
+          if (typeof nextState.packPulse === "number") setPackPulse(nextState.packPulse);
           if (typeof nextState.effectTick === "number" && !nextState.effectHitId) setConfettiTrigger(nextState.effectTick);
           if (nextState.effectHitId) {
             const revealedHit = nextHits.find((hit) => hit.id === nextState.effectHitId) || hits.find((hit) => hit.id === nextState.effectHitId);
@@ -747,7 +757,23 @@ export default function PokePlanetLiveWall() {
     setUndoStack((prev) => [...prev, hits]);
     const nextHits = updateHitQuantity(hits, selectedHitId, manualQty);
     setHits(nextHits);
-    await syncState(nextHits, null, columns, sortByTier, null, null, null);
+    await syncState(nextHits, null, columns, sortByTier, null, null, null, packCount, packPulse);
+  };
+
+  const addPack = async () => {
+    const nextPackCount = packCount + 1;
+    const nextPackPulse = Date.now();
+    setPackCount(nextPackCount);
+    setPackPulse(nextPackPulse);
+    if (soundEnabled) playSparkle();
+    await syncState(hits, null, columns, sortByTier, null, null, null, nextPackCount, nextPackPulse);
+  };
+
+  const resetPacks = async () => {
+    const nextPackPulse = Date.now();
+    setPackCount(0);
+    setPackPulse(nextPackPulse);
+    await syncState(hits, null, columns, sortByTier, null, null, null, 0, nextPackPulse);
   };
 
   const selectedHit = hits.find((hit) => hit.id === selectedHitId);

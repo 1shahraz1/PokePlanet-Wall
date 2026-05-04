@@ -441,30 +441,30 @@ function PackRunBox({ count, pulse, isDisplayMode = false }) {
       }}
       transition={{ duration: 0.38, ease: "easeOut" }}
       style={{
-        width: isDisplayMode ? "min(320px, 70%)" : "min(420px, 75%)",
-        margin: isDisplayMode ? "0 auto 8px" : "0 auto 12px",
-        borderRadius: isDisplayMode ? 14 : 18,
+        width: isDisplayMode ? "min(300px, 68%)" : "min(390px, 72%)",
+        margin: isDisplayMode ? "0 auto 6px" : "0 auto 8px",
+        borderRadius: isDisplayMode ? 10 : 12,
         border: `1px solid ${glow}aa`,
         background: "linear-gradient(135deg, rgba(5,10,25,0.46), rgba(88,28,135,0.28), rgba(8,47,73,0.32))",
         backdropFilter: "blur(8px)",
-        padding: isDisplayMode ? "8px 14px" : "10px 18px",
+        padding: isDisplayMode ? "4px 10px" : "5px 12px",
         textAlign: "center",
         position: "relative",
         overflow: "hidden",
       }}
     >
       <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at center, ${glow}26, transparent 68%)`, pointerEvents: "none" }} />
-      <div style={{ position: "relative", zIndex: 1, fontSize: isDisplayMode ? 13 : 15, fontWeight: 950, color: glow, letterSpacing: "0.16em", textTransform: "uppercase", lineHeight: 1 }}>
+      <div style={{ position: "relative", zIndex: 1, fontSize: isDisplayMode ? 10 : 12, fontWeight: 950, color: glow, letterSpacing: "0.16em", textTransform: "uppercase", lineHeight: 1 }}>
         {label}
       </div>
-      <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "center", alignItems: "baseline", gap: 8, marginTop: 4 }}>
-        <span style={{ fontSize: isDisplayMode ? 36 : 46, fontWeight: 1000, color: "white", lineHeight: 0.9, textShadow: `0 0 16px ${glow}` }}>{count}</span>
+      <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "center", alignItems: "baseline", gap: 5, marginTop: 2 }}>
+        <span style={{ fontSize: isDisplayMode ? 22 : 28, fontWeight: 1000, color: "white", lineHeight: 0.9, textShadow: `0 0 16px ${glow}` }}>{count}</span>
         <motion.span
           animate={count >= 6 ? { color: ["#dbeafe", "#ef4444", "#dbeafe"], textShadow: ["0 0 0px rgba(239,68,68,0)", "0 0 14px rgba(239,68,68,0.95)", "0 0 0px rgba(239,68,68,0)"] } : {}}
           transition={count >= 6 ? { duration: 0.8, repeat: Infinity, ease: "easeInOut" } : {}}
-          style={{ fontSize: isDisplayMode ? 14 : 16, color: "#dbeafe", fontWeight: 900, textTransform: "uppercase" }}
+          style={{ fontSize: isDisplayMode ? 11 : 13, color: "#dbeafe", fontWeight: 900, textTransform: "uppercase" }}
         >
-          {count === 1 ? "pack" : "packs"} without a BANGER!
+          {count === 1 ? "pack" : "packs"} without a HIT!
         </motion.span>
       </div>
     </motion.div>

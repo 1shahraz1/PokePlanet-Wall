@@ -441,7 +441,7 @@ function PackRunBox({ count, pulse, isDisplayMode = false }) {
       }}
       transition={{ duration: 0.38, ease: "easeOut" }}
       style={{
-        width: isDisplayMode ? "min(420px, 84%)" : "min(540px, 92%)",
+        width: isDisplayMode ? "min(320px, 70%)" : "min(420px, 75%)",
         margin: isDisplayMode ? "0 auto 8px" : "0 auto 12px",
         borderRadius: isDisplayMode ? 14 : 18,
         border: `1px solid ${glow}aa`,

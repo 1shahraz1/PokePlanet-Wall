@@ -425,6 +425,46 @@ function BigHitReveal({ hit, trigger, onDone }) {
   );
 }
 
+function PackRunBox({ count, pulse, isDisplayMode = false }) {
+  const hot = count >= 7;
+  const warm = count >= 4;
+  const glow = hot ? "#ef4444" : warm ? "#facc15" : "#22d3ee";
+  const label = hot ? "HEATING UP" : "PACK RUN";
+
+  return (
+    <motion.div
+      key={pulse}
+      initial={{ scale: 0.98 }}
+      animate={{
+        scale: [1, 1.08, 1],
+        boxShadow: [`0 0 18px ${glow}55`, `0 0 42px ${glow}aa`, `0 0 18px ${glow}55`],
+      }}
+      transition={{ duration: 0.38, ease: "easeOut" }}
+      style={{
+        width: isDisplayMode ? "min(420px, 84%)" : "min(540px, 92%)",
+        margin: isDisplayMode ? "0 auto 8px" : "0 auto 12px",
+        borderRadius: isDisplayMode ? 14 : 18,
+        border: `1px solid ${glow}aa`,
+        background: "linear-gradient(135deg, rgba(5,10,25,0.46), rgba(88,28,135,0.28), rgba(8,47,73,0.32))",
+        backdropFilter: "blur(8px)",
+        padding: isDisplayMode ? "8px 14px" : "10px 18px",
+        textAlign: "center",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at center, ${glow}26, transparent 68%)`, pointerEvents: "none" }} />
+      <div style={{ position: "relative", zIndex: 1, fontSize: isDisplayMode ? 13 : 15, fontWeight: 950, color: glow, letterSpacing: "0.16em", textTransform: "uppercase", lineHeight: 1 }}>
+        {label}
+      </div>
+      <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "center", alignItems: "baseline", gap: 8, marginTop: 4 }}>
+        <span style={{ fontSize: isDisplayMode ? 36 : 46, fontWeight: 1000, color: "white", lineHeight: 0.9, textShadow: `0 0 16px ${glow}` }}>{count}</span>
+        <span style={{ fontSize: isDisplayMode ? 14 : 16, color: "#dbeafe", fontWeight: 900, textTransform: "uppercase" }}>{count === 1 ? "pack" : "packs"}</span>
+      </div>
+    </motion.div>
+  );
+}
+
 function QuantityBadge({ qty, color }) {
   const soldOut = qty === 0;
   return (
@@ -504,7 +544,7 @@ export default function PokePlanetLiveWall() {
     if (!supabase) throw new Error("Supabase is not available in this environment");
     const { error: upsertError } = await supabase.from("wall_sessions").upsert({
       id: SESSION_ID,
-      state: { hits: nextHits, baseHits: nextBaseHits || baseHits, columns: nextColumns, sortByTier: nextSortByTier, packCount: nextPackCount, packPulse: nextPackPulse, effectTick, effectHitId, soldOutHitId }
+      state: { hits: nextHits, baseHits: nextBaseHits || baseHits, columns: nextColumns, sortByTier: nextSortByTier, packCount: nextPackCount, packPulse: nextPackPulse, effectTick, effectHitId, soldOutHitId },
       updated_at: new Date().toISOString(),
     }, { onConflict: "id" });
     if (upsertError) throw upsertError;
@@ -786,9 +826,10 @@ export default function PokePlanetLiveWall() {
       {bigHitReveal && <BigHitReveal hit={bigHitReveal.hit} trigger={bigHitReveal.trigger} onDone={() => setBigHitReveal(null)} />}
       {confettiTrigger !== 0 && <ConfettiLayer trigger={confettiTrigger} />}
       <div style={{ maxWidth: isMobilePreview ? 430 : isDisplayMode ? 760 : 1800, margin: "0 auto", paddingLeft: isDisplayMode ? 18 : 0, paddingRight: isDisplayMode ? 18 : 0, boxSizing: "border-box" }}>
+        <PackRunBox count={packCount} pulse={packPulse} isDisplayMode={isDisplayMode} />
         {!isDisplayMode && (
           <>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto", gap: 12, alignItems: "start", marginBottom: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto auto auto", gap: 12, alignItems: "start", marginBottom: 12 }}>
               <div style={{ padding: "12px 14px", borderRadius: 16, border: "1px solid rgba(34,211,238,0.18)", background: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)" }}>
                 <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: "-0.02em" }}>PokePlanet Live Wall</div>
                 <div style={{ fontSize: 18, color: "#cbd5e1", marginTop: 6 }}>Total Hits Left: <span style={{ color: "#67e8f9", fontWeight: 800 }}>{totalRemaining}</span></div>
@@ -796,6 +837,8 @@ export default function PokePlanetLiveWall() {
                 <div style={{ fontSize: 13, color: "#cbd5e1", marginTop: 4 }}>Modes: <strong>?mode=display</strong> for OBS, <strong>?mode=mobile</strong> for phone preview</div>
               </div>
               <button onClick={handleUndo} disabled={undoStack.length === 0} style={{ border: 0, borderRadius: 12, background: undoStack.length === 0 ? "#64748b" : "#f59e0b", color: "white", fontWeight: 900, fontSize: 16, padding: "12px 16px", cursor: undoStack.length === 0 ? "default" : "pointer" }}>Undo Last Hit</button>
+              <button onClick={addPack} style={{ border: 0, borderRadius: 12, background: "#2563eb", color: "white", fontWeight: 900, fontSize: 16, padding: "12px 16px", cursor: "pointer" }}>+1 Pack</button>
+              <button onClick={resetPacks} style={{ border: 0, borderRadius: 12, background: "#7f1d1d", color: "white", fontWeight: 900, fontSize: 16, padding: "12px 16px", cursor: "pointer" }}>Reset Packs</button>
               <button onClick={async () => { const unlocked = await unlockAudio(); setSoundEnabled((prev) => !prev); if (!soundEnabled && unlocked) playSparkle(); }} style={{ border: 0, borderRadius: 12, background: soundEnabled ? "#10b981" : "#475569", color: "white", fontWeight: 900, fontSize: 16, padding: "12px 16px", cursor: "pointer" }}>{soundEnabled ? "Sound On" : "Sound Off"}</button>
               <button onClick={resetWall} style={{ border: 0, borderRadius: 12, background: "#22d3ee", color: "#020617", fontWeight: 900, fontSize: 18, padding: "12px 16px", cursor: "pointer", boxShadow: "0 6px 20px rgba(34,211,238,0.22)" }}>Reset Wall</button>
             </div>

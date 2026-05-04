@@ -459,7 +459,13 @@ function PackRunBox({ count, pulse, isDisplayMode = false }) {
       </div>
       <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "center", alignItems: "baseline", gap: 8, marginTop: 4 }}>
         <span style={{ fontSize: isDisplayMode ? 36 : 46, fontWeight: 1000, color: "white", lineHeight: 0.9, textShadow: `0 0 16px ${glow}` }}>{count}</span>
-        <span style={{ fontSize: isDisplayMode ? 14 : 16, color: "#dbeafe", fontWeight: 900, textTransform: "uppercase" }}>{count === 1 ? "pack" : "packs"}</span>
+        <motion.span
+          animate={count >= 6 ? { color: ["#dbeafe", "#ef4444", "#dbeafe"], textShadow: ["0 0 0px rgba(239,68,68,0)", "0 0 14px rgba(239,68,68,0.95)", "0 0 0px rgba(239,68,68,0)"] } : {}}
+          transition={count >= 6 ? { duration: 0.8, repeat: Infinity, ease: "easeInOut" } : {}}
+          style={{ fontSize: isDisplayMode ? 14 : 16, color: "#dbeafe", fontWeight: 900, textTransform: "uppercase" }}
+        >
+          {count === 1 ? "pack" : "packs"} without a HIT!
+        </motion.span>
       </div>
     </motion.div>
   );

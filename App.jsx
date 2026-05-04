@@ -441,28 +441,28 @@ function PackRunBox({ count, pulse, isDisplayMode = false }) {
       }}
       transition={{ duration: 0.38, ease: "easeOut" }}
       style={{
-        width: isDisplayMode ? "min(300px, 68%)" : "min(390px, 72%)",
+        width: isDisplayMode ? "min(240px, 60%)" : "min(310px, 65%)",
         margin: isDisplayMode ? "0 auto 6px" : "0 auto 8px",
         borderRadius: isDisplayMode ? 10 : 12,
         border: `1px solid ${glow}aa`,
         background: "linear-gradient(135deg, rgba(5,10,25,0.46), rgba(88,28,135,0.28), rgba(8,47,73,0.32))",
         backdropFilter: "blur(8px)",
-        padding: isDisplayMode ? "4px 10px" : "5px 12px",
+        padding: isDisplayMode ? "3px 8px" : "4px 10px",
         textAlign: "center",
         position: "relative",
         overflow: "hidden",
       }}
     >
       <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at center, ${glow}26, transparent 68%)`, pointerEvents: "none" }} />
-      <div style={{ position: "relative", zIndex: 1, fontSize: isDisplayMode ? 10 : 12, fontWeight: 950, color: glow, letterSpacing: "0.16em", textTransform: "uppercase", lineHeight: 1 }}>
+      <div style={{ position: "relative", zIndex: 1, fontSize: isDisplayMode ? 8 : 10, fontWeight: 950, color: glow, letterSpacing: "0.16em", textTransform: "uppercase", lineHeight: 1 }}>
         {label}
       </div>
       <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "center", alignItems: "baseline", gap: 5, marginTop: 2 }}>
-        <span style={{ fontSize: isDisplayMode ? 22 : 28, fontWeight: 1000, color: "white", lineHeight: 0.9, textShadow: `0 0 16px ${glow}` }}>{count}</span>
+        <span style={{ fontSize: isDisplayMode ? 18 : 22, fontWeight: 1000, color: "white", lineHeight: 0.9, textShadow: `0 0 16px ${glow}` }}>{count}</span>
         <motion.span
           animate={count >= 6 ? { color: ["#dbeafe", "#ef4444", "#dbeafe"], textShadow: ["0 0 0px rgba(239,68,68,0)", "0 0 14px rgba(239,68,68,0.95)", "0 0 0px rgba(239,68,68,0)"] } : {}}
           transition={count >= 6 ? { duration: 0.8, repeat: Infinity, ease: "easeInOut" } : {}}
-          style={{ fontSize: isDisplayMode ? 11 : 13, color: "#dbeafe", fontWeight: 900, textTransform: "uppercase" }}
+          style={{ fontSize: isDisplayMode ? 9 : 11, color: "#dbeafe", fontWeight: 900, textTransform: "uppercase" }}
         >
           {count === 1 ? "pack" : "packs"} without a HIT!
         </motion.span>
@@ -828,11 +828,15 @@ export default function PokePlanetLiveWall() {
   const gridColumns = isDisplayMode ? `repeat(${displayColumns}, minmax(0, 1fr))` : isMobilePreview ? "1fr" : isStreamMode ? `repeat(${displayColumns}, minmax(0, 1fr))` : "repeat(auto-fit, minmax(240px, 1fr))";
 
   return (
-    <div style={{ minHeight: "100vh", color: "white", padding: isDisplayMode ? 4 : 10, fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", backgroundImage: "url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=2000&q=80')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundAttachment: "fixed", backgroundColor: "#020617" }}>
+    <div style={{ minHeight: "100vh", color: "white", padding: isDisplayMode ? 10 : 16, fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", backgroundImage: "url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=2000&q=80')",
+      backgroundColor: "#000814",
+      backgroundBlendMode: "multiply", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundAttachment: "fixed", backgroundColor: "#020617" }}>
       {bigHitReveal && <BigHitReveal hit={bigHitReveal.hit} trigger={bigHitReveal.trigger} onDone={() => setBigHitReveal(null)} />}
       {confettiTrigger !== 0 && <ConfettiLayer trigger={confettiTrigger} />}
       <div style={{ maxWidth: isMobilePreview ? 430 : isDisplayMode ? 760 : 1800, margin: "0 auto", paddingLeft: isDisplayMode ? 18 : 0, paddingRight: isDisplayMode ? 18 : 0, boxSizing: "border-box" }}>
+        <div style={{ marginTop: "12px" }}>
         <PackRunBox count={packCount} pulse={packPulse} isDisplayMode={isDisplayMode} />
+        </div>
         {!isDisplayMode && (
           <>
             <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto auto auto", gap: 12, alignItems: "start", marginBottom: 12 }}>
